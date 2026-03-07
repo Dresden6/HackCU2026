@@ -1,10 +1,15 @@
 /**
  * POST /api/analyze
  *
- * Accepts: { text: string }
+ * Accepts (one of):
+ *   { text: string }           — plain text input
+ *   { url: string }            — video URL (YouTube Shorts, TikTok, Instagram Reel)
+ *   multipart/form-data        — direct audio file upload (field name: "audio")
+ *
  * Returns: AnalyzeResponse
  *
  * Pipeline:
+ *   0. Resolve rawText from text | url | audio upload
  *   1. Parse free-text → structured ParsedTrade (LLM)
  *   2. Detect red flags (deterministic)
  *   3. Generate explanation (LLM)
@@ -15,16 +20,45 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseTrade, explainTrade } from "@/lib/parser";
 import { detectFlags } from "@/lib/flags";
 import { getCurrentPrice } from "@/lib/marketData";
+import { transcribeFromUrl, transcribeBuffer } from "@/lib/transcribe";
 import type { AnalyzeResponse } from "@/types/trade";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const rawText: string = body?.text?.trim();
+    let rawText = "";
+    const contentType = req.headers.get("content-type") ?? "";
+
+    if (contentType.includes("multipart/form-data")) {
+      // ── Mode 3: direct audio file upload ──────────────────
+      const form = await req.formData();
+      const audioFile = form.get("audio");
+
+      if (!audioFile || typeof audioFile === "string") {
+        return NextResponse.json(
+          { error: "Expected an 'audio' file in the form data." },
+          { status: 400 },
+        );
+      }
+
+      const arrayBuffer = await (audioFile as File).arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      rawText = await transcribeBuffer(buffer, (audioFile as File).name);
+    } else {
+      // ── Mode 1 & 2: JSON body with text or url ─────────────
+      const body = await req.json();
+
+      if (body?.url) {
+        // Mode 2: video URL → download audio → transcribe
+        rawText = await transcribeFromUrl(body.url as string);
+      } else if (body?.text) {
+        // Mode 1: plain text (existing behaviour)
+        rawText = (body.text as string).trim();
+      }
+    }
 
     if (!rawText) {
       return NextResponse.json(
-        { error: "Missing 'text' field in request body." },
+        { error: "Provide one of: 'text' (string), 'url' (video link), or an 'audio' file upload." },
         { status: 400 },
       );
     }
