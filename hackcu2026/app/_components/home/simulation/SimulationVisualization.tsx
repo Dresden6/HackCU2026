@@ -11,6 +11,7 @@ import {useAnalysis} from "@/lib/swr";
 interface Props {
     data?: SimulationResult,
     id?: string,
+    capital?: number,
 }
 
 const fmt = (v: number) =>
@@ -23,22 +24,17 @@ const fmt = (v: number) =>
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 
-export default function SimulationVisualization({data, id}: Props) {
+export default function SimulationVisualization({data, id, capital}: Props) {
     const { item: result, isLoading: resultLoading } = useAnalysis(id ?? null);
 
     const resolvedData = id ? (result?.simulationResult as SimulationResult) : data;
-    const {summary, endingValues = [], samplePaths = []} = resolvedData?.simulationResult ?? {};
+    const resolvedCapital = capital ?? result?.parsedTrade?.capital;
+    const {summary, endingValues = [], samplePaths = []} = resolvedData ?? {};
 
     // console.log(data);
     console.log("id:", id);
     console.log("result:", result);
     console.log("resultLoading:", resultLoading);
-
-    console.log("resolvedData:", resolvedData);
-    console.log("summary:", resolvedData?.summary);
-    if (id && resultLoading) return <Skeleton h={400} />;
-    if (!summary) return null;
-
 
     const histogram = useMemo(() => {
         if (!endingValues.length) return [];
@@ -79,6 +75,7 @@ export default function SimulationVisualization({data, id}: Props) {
         });
     }, [samplePaths]);
 
+    if (id && resultLoading) return <Skeleton h={400} />;
     if (!summary) return null;
 
     const pathSeries = samplePaths.map((_, i) => ({
@@ -148,7 +145,7 @@ export default function SimulationVisualization({data, id}: Props) {
                 </Box>
                 <Stack>
                     <Badge size="md" variant="light" color="gray">
-                        Initial Investment of $1000
+                        Initial Investment of {resolvedCapital != null ? fmt(resolvedCapital) : "$1,000"}
                     </Badge>
                     <Badge size="md" variant="light" color="gray">
                         n = {endingValues.length.toLocaleString()} simulations

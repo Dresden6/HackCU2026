@@ -167,7 +167,7 @@ export default function HomeTabs() {
             </Card>}
 
             {!loading && !resultLoading && result && <Card style={{minHeight: "400px", minWidth: 0}} mt={20}>
-                <SimulationVisualization data={result}/>
+                <SimulationVisualization data={result.simulationResult} capital={result.parsedTrade?.capital}/>
             </Card>}
         </>
     );
