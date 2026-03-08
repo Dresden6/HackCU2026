@@ -126,6 +126,9 @@ export default function HomeTabs() {
                                 description="Paste any text — a newsletter, post, transcript, etc."
                                 placeholder="Paste the text you want to analyze..."
                                 minRows={6} // sets the minimum visible height of the textarea
+                                rows={10}
+                                // autosize
+                                resize="vertical"
                                 value={text}
                                 onChange={(e) => setText(e.currentTarget.value)}
                             />
