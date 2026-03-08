@@ -1,7 +1,7 @@
 "use client";
 
 import {BarChart, DonutChart, LineChart} from "@mantine/charts";
-import {Badge, Box, Flex, Grid, GridCol, Group, Paper, Stack, Text, Title} from "@mantine/core";
+import {Badge, Box, Flex, Grid, GridCol, Group, Paper, Stack, Text, Title, Tooltip} from "@mantine/core";
 import {useElementSize} from "@mantine/hooks";
 import {useMemo} from "react";
 import {SimulationResult} from "@/types/trade";
@@ -48,6 +48,13 @@ export default function SimulationVisualization({data}: Props) {
         ];
     }, [endingValues]);
 
+    const pathMin = useMemo(() => {
+        if (!samplePaths.length) return 0;
+        const allValues = samplePaths.flat();
+        const min = Math.min(...allValues);
+        return min - Math.abs(min) * 0.1; // 10% padding below min
+    }, [samplePaths]);
+
     const pathsChartData = useMemo(() => {
         if (!samplePaths.length) return [];
         const maxLen = Math.max(...samplePaths.map((p) => p.length));
@@ -69,14 +76,43 @@ export default function SimulationVisualization({data}: Props) {
     }));
 
     const percentileBars = [
-        {label: "P5", value: summary.p5, color: "#ef4444"},
-        {label: "P25", value: summary.p25, color: "#f97316"},
-        {label: "Median", value: summary.medianEndingValue, color: "#eab308"},
-        {label: "Mean", value: summary.meanEndingValue, color: "#14b8a6"},
-        {label: "P75", value: summary.p75, color: "#06b6d4"},
-        {label: "P95", value: summary.p95, color: "#3b82f6"},
+        {
+            label: "P5",
+            description: "5th percentile — 95% of simulations ended above this value",
+            value: summary.p5,
+            color: "#ef4444"
+        },
+        {
+            label: "P25",
+            description: "25th percentile — 75% of simulations ended above this value",
+            value: summary.p25,
+            color: "#f97316"
+        },
+        {
+            label: "Median",
+            description: "50th percentile — half of simulations ended above and below this value",
+            value: summary.medianEndingValue,
+            color: "#eab308"
+        },
+        {
+            label: "Mean",
+            description: "Average ending value across all simulations",
+            value: summary.meanEndingValue,
+            color: "#14b8a6"
+        },
+        {
+            label: "P75",
+            description: "75th percentile — 25% of simulations ended above this value",
+            value: summary.p75,
+            color: "#06b6d4"
+        },
+        {
+            label: "P95",
+            description: "95th percentile — only 5% of simulations ended above this value",
+            value: summary.p95,
+            color: "#3b82f6"
+        },
     ];
-
     const winRate = summary.probProfit;
     const lossRate = 1 - winRate;
 
@@ -189,7 +225,8 @@ export default function SimulationVisualization({data}: Props) {
                                 {label: "Loss / Breakeven", value: pct(lossRate), color: "#ef4444"},
                             ].map((item) => (
                                 <Group key={item.label} gap="sm">
-                                    <Box w={12} h={12} style={{borderRadius: 3, background: item.color, flexShrink: 0}}/>
+                                    <Box w={12} h={12}
+                                         style={{borderRadius: 3, background: item.color, flexShrink: 0}}/>
                                     <Text size="sm" c="dimmed">{item.label}</Text>
                                     <Text size="sm" fw={600} style={{color: item.color}}>{item.value}</Text>
                                 </Group>
@@ -220,10 +257,42 @@ export default function SimulationVisualization({data}: Props) {
                         strokeWidth={1.5}
                         withTooltip={false}
                         xAxisProps={{tick: false}}
-                        yAxisProps={{width: 65}}
+                        yAxisProps={{width: 65, domain: [pathMin, 'auto']}}
                         valueFormatter={fmt}
                     />
                 </Box>
+                <Group gap="xl" mt="sm">
+                    <Group gap="xs">
+                        <Group gap={2}>
+                            <Box style={{
+                                width: 10,
+                                height: 2,
+                                background: "var(--mantine-color-teal-5)",
+                                flexShrink: 0
+                            }}/>
+                            <Box style={{
+                                width: 10,
+                                height: 2,
+                                background: "var(--mantine-color-red-5)",
+                                flexShrink: 0
+                            }}/>
+                            <Box style={{
+                                width: 10,
+                                height: 2,
+                                background: "var(--mantine-color-yellow-6)",
+                                flexShrink: 0
+                            }}/>
+                        </Group>
+                        <Text size="xs" c="dimmed">Featured paths</Text>
+                    </Group>
+                    <Group gap="xs">
+                        <Box style={{
+                            width: 24, height: 0, flexShrink: 0,
+                            borderTop: "2px dashed var(--mantine-color-gray-4)",
+                        }}/>
+                        <Text size="xs" c="dimmed">Additional sample paths</Text>
+                    </Group>
+                </Group>
             </Box>
 
             {/* Percentile Ladder */}
@@ -240,7 +309,15 @@ export default function SimulationVisualization({data}: Props) {
                         return (
                             <Box key={p.label}>
                                 <Group justify="space-between" mb={6}>
-                                    <Text size="sm" fw={500}>{p.label}</Text>
+                                    <Tooltip label={p.description} withArrow position="top-start" maw={260} multiline>
+                                        <Group justify="space-between" mb={6}>
+                                            <Text size="sm" fw={500}
+                                                  style={{cursor: "help", textDecoration: "underline dotted"}}>
+                                                {p.label}
+                                            </Text>
+                                            <Text size="sm" fw={600}>{fmt(p.value)}</Text>
+                                        </Group>
+                                    </Tooltip>
                                     <Text size="sm" fw={600}>{fmt(p.value)}</Text>
                                 </Group>
                                 <Box style={{
@@ -263,7 +340,7 @@ export default function SimulationVisualization({data}: Props) {
                         );
                     })}
                 </Stack>
-                <Paper mt="xl" p="md" withBorder style={{background: "var(--mantine-color-gray-0)"}}>
+                <Paper mt="xl" p="md" withBorder>
                     <Text size="sm" fw={600} mb={4}>IQR (P25 → P75)</Text>
                     <Text size="xs" c="dimmed" mb={8}>
                         The interquartile range (IQR) spans the middle 50% of all simulation outcomes —
