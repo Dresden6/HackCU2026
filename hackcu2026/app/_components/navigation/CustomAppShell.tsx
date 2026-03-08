@@ -5,8 +5,8 @@ import {
     Box,
     Burger,
     Button,
-    Group,
-    NativeSelect,
+    Group, Loader, Menu, MenuDivider, MenuDropdown, MenuItem, MenuTarget,
+    NativeSelect, Overlay, Skeleton,
     Title, useComputedColorScheme,
     useMantineColorScheme
 } from "@mantine/core";
@@ -17,9 +17,10 @@ import {useState} from "react";
 import styles from "./header.module.css";
 import Image from "next/image";
 import {bitcount, orbitron} from "@/app/fonts";
-import {IconMoon, IconSun} from "@tabler/icons-react";
+import {IconDashboard, IconLogout, IconMoon, IconSun} from "@tabler/icons-react";
 import LoginButton from "@/app/_components/auth/loginButton/LoginButton";
-import {useSession} from "next-auth/react";
+import {signOut, useSession} from "next-auth/react";
+import {notifications} from "@mantine/notifications";
 
 interface Props {
     children: React.ReactNode;
@@ -38,6 +39,8 @@ export default function CustomAppShell(props: Props) {
     const pathname = usePathname();
     const splitPath: string[] = pathname ? pathname.split("/") : ["/"];
     const [active, setActive] = useState(pathname ? pathname == "/" ? "/" : splitPath[splitPath.length - 1] : "/");
+
+    const [loadingOverlayVisible, setLoadingOverlayVisible] = useState(false);
 
     const {toggleColorScheme, setColorScheme} = useMantineColorScheme();
     const computedColorScheme = useComputedColorScheme('light', {getInitialValueInEffect: true});
@@ -67,7 +70,8 @@ export default function CustomAppShell(props: Props) {
                     {/*    hiddenFrom="sm"*/}
                     {/*    size="sm"*/}
                     {/*/>*/}
-                    <Title className={bitcount.className} order={1} mr={10}>TradeTruth</Title>
+                    <Title className={bitcount.className} order={1} mr={5} visibleFrom={"xs"}>TradeTruth</Title>
+                    <Title className={bitcount.className} order={1} mr={5} hiddenFrom={"xs"}>TT</Title>
 
                     <Group className={styles.accountButtonsGroup} visibleFrom="md">
                         {navLinks.map((link) =>
@@ -96,9 +100,36 @@ export default function CustomAppShell(props: Props) {
                     </Group>
 
                     <Group ml={"auto"}>
-                        {!session?.user && <LoginButton/>}
+                        {status === "loading" && <Skeleton w={200} h={40}/>}
+                        {!session?.user && status !== "loading" && <LoginButton/>}
                         {session?.user && <>
-                            <Avatar src={session.user.image}/>
+                            <Menu shadow="md" width={200}>
+                                <MenuTarget>
+                                    <div className={styles.accountButtonsGroup} style={{cursor: "pointer"}}
+                                        //hiddenFrom="sm"
+                                    >
+                                        <Avatar src={session.user.image}/>
+                                    </div>
+                                </MenuTarget>
+
+                                <MenuDropdown>
+                                    <Menu.Label>Account</Menu.Label>
+
+                                    <MenuDivider/>
+                                    <MenuItem leftSection={<IconLogout size={14}/>} onClick={async () => {
+                                        setLoadingOverlayVisible(true);
+                                        await signOut();
+                                        setLoadingOverlayVisible(false);
+                                        notifications.show({
+                                            position: 'top-center',
+                                            withCloseButton: true,
+                                            message: 'You\'ve been logged out',
+                                        });
+                                    }}>
+                                        Logout
+                                    </MenuItem>
+                                </MenuDropdown>
+                            </Menu>
                         </>}
                         <ActionIcon
                             onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
@@ -113,6 +144,8 @@ export default function CustomAppShell(props: Props) {
                                 <IconMoon stroke={1.5}/>
                             </Box>
                         </ActionIcon>
+                        {loadingOverlayVisible &&
+                            <Overlay fixed color="#000" backgroundOpacity={0.25}> <Loader/> </Overlay>}
                     </Group>
 
                 </Group>

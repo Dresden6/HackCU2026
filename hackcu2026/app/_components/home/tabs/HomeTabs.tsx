@@ -39,6 +39,7 @@ export default function HomeTabs() {
             setLoading(false);
         }
     };
+
     const handleTextSubmit = async () =>{
         console.log("Analyzing Text:", text);
         if(!text.trim()) return; //prevent empty submissions
