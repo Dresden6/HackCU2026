@@ -2,7 +2,7 @@
 import {Tabs, TextInput, Textarea, Button, Stack, FileInput, Card, Skeleton, Text} from "@mantine/core";
 import {useState} from "react";
 import LoadingOverlay from "@/app/_components/home/loading/LoadingOverlay";
-import {ParsedTrade, SimulateResponse} from "@/types/trade";
+import {ParsedTrade, SimulateResponse, AnalysisDocument} from "@/types/trade";
 import SimulationVisualization from "@/app/_components/home/simulation/SimulationVisualization";
 
 export default function HomeTabs() {
@@ -27,6 +27,15 @@ export default function HomeTabs() {
         return simResponse.json();
     };
 
+    // Fire-and-forget: persist the analysis to MongoDB for history
+    const saveToHistory = (doc: Omit<AnalysisDocument, 'createdAt' | 'email'>) => {
+        fetch('/api/history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(doc),
+        }).catch((err) => console.warn('[saveToHistory]', err));
+    };
+
     const handleUrlSubmit = async () => {
         if (!url.trim()) return;
         setLoading(true);
@@ -42,6 +51,13 @@ export default function HomeTabs() {
 
             const simData = await runSimulate(analyzeData.parsedTrade);
             setResult({...analyzeData, simulation: simData.simulation});
+            saveToHistory({
+                rawText: analyzeData.rawText,
+                parsedTrade: analyzeData.parsedTrade,
+                flags: analyzeData.flags,
+                explanation: analyzeData.explanation,
+                simulationResult: simData.simulation,
+            });
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
         } finally {
@@ -65,6 +81,13 @@ export default function HomeTabs() {
             const simData = await runSimulate(analyzeData.parsedTrade);
             console.log(simData);
             setResult({...analyzeData, simulation: simData.simulation});
+            saveToHistory({
+                rawText: analyzeData.rawText,
+                parsedTrade: analyzeData.parsedTrade,
+                flags: analyzeData.flags,
+                explanation: analyzeData.explanation,
+                simulationResult: simData.simulation,
+            });
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
         } finally {
@@ -91,6 +114,13 @@ export default function HomeTabs() {
 
             const simData = await runSimulate(analyzeData.parsedTrade);
             setResult({...analyzeData, simulation: simData.simulation});
+            saveToHistory({
+                rawText: analyzeData.rawText,
+                parsedTrade: analyzeData.parsedTrade,
+                flags: analyzeData.flags,
+                explanation: analyzeData.explanation,
+                simulationResult: simData.simulation,
+            });
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
         } finally {
