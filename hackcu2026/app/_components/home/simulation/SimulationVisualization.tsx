@@ -163,10 +163,10 @@ export default function SimulationVisualization({data}: Props) {
 
             {/* Outcome Distribution */}
             <Box>
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
+                <Text size="md" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
                     Outcome Distribution
                 </Text>
-                <Text size="xs" c="dimmed" mb="md">
+                <Text size="sm" c="dimmed" mb="md">
                     Frequency of ending values across all simulations
                 </Text>
                 <Box style={{width: "100%", minWidth: 0, overflow: "hidden"}} p={10}>
@@ -196,10 +196,10 @@ export default function SimulationVisualization({data}: Props) {
 
             {/* Win / Loss Split */}
             <Box>
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
+                <Text size="md" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
                     Win / Loss Split
                 </Text>
-                <Text size="xs" c="dimmed" mb="md">
+                <Text size="sm" c="dimmed" mb="md">
                     Profitable vs unprofitable simulation runs
                 </Text>
                 <Grid justify="center" align="center">
@@ -238,10 +238,10 @@ export default function SimulationVisualization({data}: Props) {
 
             {/* Sample Paths */}
             <Box>
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
+                <Text size="md" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
                     Sample Paths
                 </Text>
-                <Text size="xs" c="dimmed" mb="md">
+                <Text size="sm" c="dimmed" mb="md">
                     Portfolio value over time — selected simulation runs
                 </Text>
                 <Box style={{width: "100%", minWidth: 0, overflow: "hidden"}}>
@@ -297,10 +297,10 @@ export default function SimulationVisualization({data}: Props) {
 
             {/* Percentile Ladder */}
             <Box>
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
+                <Text size="md" c="dimmed" tt="uppercase" fw={600} style={{letterSpacing: "0.1em"}} mb={4}>
                     Percentile Ladder
                 </Text>
-                <Text size="xs" c="dimmed" mb="lg">
+                <Text size="sm" c="dimmed" mb="lg">
                     Distribution of final portfolio values
                 </Text>
                 <Stack gap="md">
@@ -341,13 +341,13 @@ export default function SimulationVisualization({data}: Props) {
                     })}
                 </Stack>
                 <Paper mt="xl" p="md" withBorder>
-                    <Text size="sm" fw={600} mb={4}>IQR (P25 → P75)</Text>
-                    <Text size="xs" c="dimmed" mb={8}>
+                    <Text size="md" fw={600} mb={4}>IQR (P25 → P75)</Text>
+                    <Text size="sm" c="dimmed" mb={8}>
                         The interquartile range (IQR) spans the middle 50% of all simulation outcomes —
                         half of all runs landed between these two values.
                     </Text>
-                    <Text size="sm" c="dimmed">{fmt(summary.p25)} → {fmt(summary.p75)}</Text>
-                    <Text size="xs" c="dimmed" mt={4}>Range: {fmt(summary.p75 - summary.p25)}</Text>
+                    <Text size="md" c="dimmed">{fmt(summary.p25)} → {fmt(summary.p75)}</Text>
+                    <Text size="sm" c="dimmed" mt={4}>Range: {fmt(summary.p75 - summary.p25)}</Text>
                 </Paper>
             </Box>
         </Stack>
