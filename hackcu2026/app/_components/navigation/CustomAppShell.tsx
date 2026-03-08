@@ -21,6 +21,7 @@ import {IconDashboard, IconLogout, IconMoon, IconSun} from "@tabler/icons-react"
 import LoginButton from "@/app/_components/auth/loginButton/LoginButton";
 import {signOut, useSession} from "next-auth/react";
 import {notifications} from "@mantine/notifications";
+import LoadingOverlay from "@/app/_components/home/loading/LoadingOverlay";
 
 interface Props {
     children: React.ReactNode;
@@ -33,7 +34,7 @@ export default function CustomAppShell(props: Props) {
 
     const {data: session, update, status} = useSession();
 
-    console.log(session);
+    // console.log(session);
 
 
     const pathname = usePathname();
@@ -99,7 +100,7 @@ export default function CustomAppShell(props: Props) {
                         />
                     </Group>
 
-                    <Group ml={"auto"}>
+                    <Group ml={"auto"} gap={15}>
                         {status === "loading" && <Skeleton w={200} h={40}/>}
                         {!session?.user && status !== "loading" && <LoginButton/>}
                         {session?.user && <>
@@ -144,8 +145,7 @@ export default function CustomAppShell(props: Props) {
                                 <IconMoon stroke={1.5}/>
                             </Box>
                         </ActionIcon>
-                        {loadingOverlayVisible &&
-                            <Overlay fixed color="#000" backgroundOpacity={0.25}> <Loader/> </Overlay>}
+                        {loadingOverlayVisible && <LoadingOverlay/>}
                     </Group>
 
                 </Group>

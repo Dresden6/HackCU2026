@@ -17,6 +17,10 @@ export const metadata: Metadata = {
 };
 
 const theme = createTheme({
+    primaryColor: "custom-primary",
+    colors: {
+        "custom-primary": ["#4C0019", "#730026", "#990033", "#BF0141", "#E5024E", "#FE0357", "#FE2D72", "#FE578D", "#FE81A8", "#FEABC3"],
+    },
     headings: {
         fontFamily: orbitron.style.fontFamily,
         fontWeight: "900",
