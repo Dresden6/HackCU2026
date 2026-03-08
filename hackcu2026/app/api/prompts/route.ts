@@ -28,16 +28,16 @@ export async function GET(req : Request){
     export async function POST(req:Request){
         try{
             const body = await req.json();
-            const{Prompt, email} = body;
-            if(!Prompt|| !email){
-                return Response.json({error: "prompt and email required"});
+            const { rawText, parsedTrade, flags, simulationSummary, email } = body;
+            if(!rawText || !parsedTrade || !email){
+                return Response.json({error: "rawText, parsedTrade, and email are required"}, {status: 400});
             }
-            const prompt = await Prompts.create({Prompt, email});
-            return Response.json(prompt, {status:200});
+            const prompt = await Prompts.create({ email, rawText, parsedTrade, flags, simulationSummary });
+            return Response.json(prompt, {status:201});
 
         }
         catch(error){
-            return Response.json({error : "Failed to add prompt", details : String(error)}, {status:500});
+            return Response.json({error : "Failed to add data", details : String(error)}, {status:500});
         }
     }
 
