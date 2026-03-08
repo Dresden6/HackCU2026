@@ -77,9 +77,12 @@ export interface SimulateResponse {
 
 /** Full analysis document stored in MongoDB. */
 export interface AnalysisDocument {
+  _id?: string;
+  email: string;
   rawText: string;
   parsedTrade: ParsedTrade;
   flags: Flag[];
+  explanation: string;
   simulationResult?: SimulationResult;
   createdAt: Date;
 }
