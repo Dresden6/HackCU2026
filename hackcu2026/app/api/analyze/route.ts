@@ -19,7 +19,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseTrade, explainTrade } from "@/lib/parser";
 import { detectFlags } from "@/lib/flags";
-import { getCurrentPrice } from "@/lib/marketData";
+import { getCurrentPrice, resolveTickerFromName } from "@/lib/marketData";
 import { transcribeFromUrl, transcribeBuffer } from "@/lib/transcribe";
 import type { AnalyzeResponse } from "@/types/trade";
 
@@ -66,10 +66,30 @@ export async function POST(req: NextRequest) {
     // 1. LLM parse
     const parsedTrade = await parseTrade(rawText);
 
+    // 1b. If GPT wasn't confident about the ticker, resolve it via Yahoo search
+    if (parsedTrade.ticker === "UNKNOWN" && parsedTrade.companyName) {
+      const resolved = await resolveTickerFromName(parsedTrade.companyName);
+      if (resolved) {
+        console.log(
+          `[analyze] Resolved "${parsedTrade.companyName}" → ${resolved} via Yahoo search`,
+        );
+        parsedTrade.ticker = resolved;
+        parsedTrade.assumptions.push(
+          `Ticker ${resolved} resolved from company name "${parsedTrade.companyName}" via market data search`,
+        );
+      } else {
+        // Genuine fallback — couldn't find it anywhere
+        parsedTrade.ticker = "SPY";
+        parsedTrade.assumptions.push(
+          `Could not resolve ticker for "${parsedTrade.companyName}" — defaulted to SPY`,
+        );
+      }
+    }
+
     // 2. Deterministic red-flag scan
     const flags = detectFlags(rawText);
 
-    // 3. Backfill real current price
+    // 3. Backfill real current price (ticker is now confirmed correct)
     try {
       parsedTrade.currentPrice = await getCurrentPrice(parsedTrade.ticker);
     } catch {
@@ -79,7 +99,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Generate explanation (runs in parallel-safe fashion)
+    // 4. Generate explanation — runs after ticker is fully resolved
     const explanation = await explainTrade(rawText, parsedTrade);
 
     const response: AnalyzeResponse = {
