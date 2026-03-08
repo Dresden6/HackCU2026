@@ -56,6 +56,36 @@ export async function getCurrentPrice(ticker: string): Promise<number> {
 }
 
 /**
+ * Resolve a company name to a stock ticker using Yahoo Finance autocomplete.
+ * Returns null if no confident match is found.
+ */
+export async function resolveTickerFromName(
+  companyName: string,
+): Promise<string | null> {
+  try {
+    const url =
+      `https://query1.finance.yahoo.com/v1/finance/search` +
+      `?q=${encodeURIComponent(companyName)}&quotesCount=5&newsCount=0&listsCount=0`;
+
+    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const quotes: Array<{ symbol: string; quoteType: string; score: number }> =
+      json?.quotes ?? [];
+
+    // Prefer EQUITY type results (actual stocks), skip ETFs/indices for now
+    const stock = quotes.find(
+      (q) => q.quoteType === "EQUITY" || q.quoteType === "ETF",
+    );
+
+    return stock?.symbol ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Compute array of daily log-returns from a bar series.
  */
 export function computeDailyReturns(bars: HistoricalBar[]): number[] {
@@ -91,6 +121,10 @@ async function fetchYahooChart(ticker: string): Promise<HistoricalBar[]> {
   const timestamps: number[] = result.timestamp;
   const closes: number[] =
     result.indicators?.quote?.[0]?.close ?? [];
+
+  if (!timestamps || timestamps.length === 0) {
+    throw new Error(`No price data returned for ticker — it may not exist on Yahoo Finance.`);
+  }
 
   const bars: HistoricalBar[] = [];
   for (let i = 0; i < timestamps.length; i++) {

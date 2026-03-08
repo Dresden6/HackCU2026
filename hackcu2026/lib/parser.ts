@@ -17,7 +17,8 @@ const SYSTEM_PROMPT = `You are a financial trade parser. The user will give you 
 Your job is to extract structured trade information and return ONLY valid JSON matching this exact schema — no markdown, no explanation, no wrapping:
 
 {
-  "ticker": string,            // uppercase ticker symbol, e.g. "TSLA"
+  "ticker": string,            // uppercase ticker symbol, e.g. "TSLA" — use your best guess; if unsure use "UNKNOWN"
+  "companyName": string,       // the raw company/asset name as mentioned in the text, e.g. "Tesla"
   "assetType": "stock" | "option",
   "strategyType": "long_stock" | "short_stock" | "long_call" | "long_put",
   "direction": "bullish" | "bearish",
@@ -38,6 +39,8 @@ Rules:
 - If no derivatives are mentioned → long_stock
 - If no dollar amount is stated, assume $1000
 - If no timeframe is stated, assume 30 days
+- Always populate "companyName" with the raw name of the company/asset mentioned (e.g. "Tesla", "Nvidia", "Bitcoin")
+- For "ticker": convert well-known company names to their NYSE/NASDAQ symbol (e.g. "Tesla" → "TSLA", "Apple" → "AAPL", "Nvidia" → "NVDA", "Google" → "GOOGL", "Amazon" → "AMZN", "Microsoft" → "MSFT", "Meta" → "META"). If you are not confident about the ticker, set ticker to "UNKNOWN" — do NOT guess or use SPY as a fallback.
 - Extract ANY hype/confidence phrases verbatim into confidencePhrases
 - List every assumption you made in the assumptions array
 - Return ONLY the JSON object, nothing else`;
@@ -139,7 +142,8 @@ export async function explainTrade(
 
 function sanitizeParsedTrade(raw: Partial<ParsedTrade>): ParsedTrade {
   return {
-    ticker: (raw.ticker ?? "SPY").toUpperCase(),
+    ticker: (raw.ticker ?? "UNKNOWN").toUpperCase(),
+    companyName: raw.companyName ?? undefined,
     assetType: raw.assetType ?? "stock",
     strategyType: raw.strategyType ?? "long_stock",
     direction: raw.direction ?? "bullish",
