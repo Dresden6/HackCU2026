@@ -1,14 +1,16 @@
 "use client";
 
 import {BarChart, DonutChart, LineChart} from "@mantine/charts";
-import {Badge, Box, Flex, Grid, GridCol, Group, Paper, Stack, Text, Title, Tooltip} from "@mantine/core";
+import {Badge, Box, Flex, Grid, GridCol, Group, Paper, Skeleton, Stack, Text, Title, Tooltip} from "@mantine/core";
 import {useElementSize} from "@mantine/hooks";
 import {useMemo} from "react";
 import {SimulationResult} from "@/types/trade";
+import {useAnalysis} from "@/lib/swr";
 
 
 interface Props {
-    data: SimulationResult;
+    data?: SimulationResult,
+    id?: string,
 }
 
 const fmt = (v: number) =>
@@ -21,12 +23,22 @@ const fmt = (v: number) =>
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 
-export default function SimulationVisualization({data}: Props) {
-    const {summary, endingValues = [], samplePaths = []} = data ?? {};
+export default function SimulationVisualization({data, id}: Props) {
+    const { item: result, isLoading: resultLoading } = useAnalysis(id ?? null);
 
-    // Hooks must be called before any early returns
-    const {ref: barRef, width: barWidth} = useElementSize();
-    const {ref: lineRef, width: lineWidth} = useElementSize();
+    const resolvedData = id ? (result?.simulationResult as SimulationResult) : data;
+    const {summary, endingValues = [], samplePaths = []} = resolvedData?.simulationResult ?? {};
+
+    // console.log(data);
+    console.log("id:", id);
+    console.log("result:", result);
+    console.log("resultLoading:", resultLoading);
+
+    console.log("resolvedData:", resolvedData);
+    console.log("summary:", resolvedData?.summary);
+    if (id && resultLoading) return <Skeleton h={400} />;
+    if (!summary) return null;
+
 
     const histogram = useMemo(() => {
         if (!endingValues.length) return [];

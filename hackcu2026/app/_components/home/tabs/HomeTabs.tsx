@@ -1,16 +1,23 @@
 "use client";
 import {Tabs, TextInput, Textarea, Button, Stack, FileInput, Card, Skeleton, Text} from "@mantine/core";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import LoadingOverlay from "@/app/_components/home/loading/LoadingOverlay";
 import {AnalysisDocument} from "@/types/trade";
 import {useAnalysis} from "@/lib/swr";
 import SimulationVisualization from "@/app/_components/home/simulation/SimulationVisualization";
+import {useRouter, useSearchParams} from "next/navigation";
+
 
 export default function HomeTabs() {
+    const searchParams = useSearchParams();
+    const idFromUrl = searchParams.get("id");
+
     //states for each input type
     const [url, setUrl] = useState("");
     const [text, setText] = useState("");
     const [file, setFile] = useState<File | null>(null);
+
+    const router = useRouter();
 
     //state for tracking API call status and results
     const [loading, setLoading] = useState(false);
@@ -18,7 +25,8 @@ export default function HomeTabs() {
     const [error, setError] = useState<string | null>(null);
 
     // Fetch the full analysis document once we have an ID
-    const { item: result, isLoading: resultLoading } = useAnalysis(resultId);
+    const { item: result, isLoading: resultLoading } = useAnalysis(resultId ?? idFromUrl);
+
 
     // Shared helper: call analyze then (if financial) simulate, returning the doc ID
     const analyzeAndSimulate = async (
@@ -49,6 +57,7 @@ export default function HomeTabs() {
 
             // 4. Set the ID so useAnalysis fetches the complete document
             setResultId(analyzeData.id);
+            router.replace("/?id=" + analyzeData.id);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
         } finally {
@@ -157,8 +166,8 @@ export default function HomeTabs() {
                 <Text c={"red"}>{error}</Text>
             </Card>}
 
-            {!loading && !resultLoading && result?.simulationResult && <Card style={{minHeight: "400px", minWidth: 0}} mt={20}>
-                <SimulationVisualization data={result.simulationResult}/>
+            {!loading && !resultLoading && result && <Card style={{minHeight: "400px", minWidth: 0}} mt={20}>
+                <SimulationVisualization data={result}/>
             </Card>}
         </>
     );
