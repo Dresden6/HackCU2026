@@ -41,7 +41,7 @@ export default function SimulationVisualization({data, id, capital}: Props) {
     const {item: result, isLoading: resultLoading} = useAnalysis(id ?? null);
 
     const resolvedData = id ? (result as AnalysisDocument) : data;
-    const resolvedSimResult = id ? (result?.simulationResult as SimulationResult) : data;
+    const resolvedSimResult = resolvedData?.simulationResult as SimulationResult | undefined;
     const resolvedCapital = capital ?? result?.parsedTrade?.capital;
     const {summary, endingValues = [], samplePaths = []} = resolvedSimResult ?? {};
 
