@@ -59,12 +59,11 @@ export default function SimulationPage() {
                                         <Badge size="lg" color={"red"}>
                                             Flags: {el.flags.length}
                                         </Badge>
-                                        {el.simulationResult?.summary?.probProfit &&
                                             <Badge size="lg" color={"#6366f1"} w={240}>
                                                 Profit Probability: <NumberFormatter
                                                 value={Number(el.simulationResult?.summary?.probProfit) * 100}
                                                 suffix="%" decimalScale={2}/>
-                                            </Badge>}
+                                            </Badge>
                                     </Stack>
                                 </GridCol>
 
