@@ -43,9 +43,8 @@
 }
 
 .accountButtonsGroup {
-    margin-right: var(--mantine-spacing-lg);
+    /*margin-right: var(--mantine-spacing-lg);*/
     height: 42px;
-
 }
 
 

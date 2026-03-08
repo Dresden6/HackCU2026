@@ -13,6 +13,8 @@ export type Direction = "bullish" | "bearish";
 /** Structured representation of a trade extracted from free text. */
 export interface ParsedTrade {
   ticker: string;
+  /** Raw company name as mentioned in the source text, before ticker resolution. */
+  companyName?: string;
   assetType: AssetType;
   strategyType: StrategyType;
   direction: Direction;
@@ -78,6 +80,6 @@ export interface AnalysisDocument {
   rawText: string;
   parsedTrade: ParsedTrade;
   flags: Flag[];
-  simulationSummary?: SimulationSummary;
+  simulationResult?: SimulationResult;
   createdAt: Date;
 }

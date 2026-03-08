@@ -12,12 +12,11 @@ export default function Home() {
     const {data: session, update, status} = useSession();
 
 
-
     return (
         <>
             <Container size="md">
                 <Stack>
-                    {status === "loading" && <Skeleton w={300} h={20}/>}
+                    {status === "loading" && <Skeleton w={300} h={30}/>}
                     {session?.user && <Title order={3}>Welcome Back, {session.user.name}</Title>}
                     <Card>
                         <Text size={"lg"}>
@@ -26,17 +25,19 @@ export default function Home() {
                             allow you to avoid malicious actors.
                         </Text>
                     </Card>
+
                     {/*@ts-expect-error This works, but says you can't do align on Card*/}
-                    <Card style={{minHeight: "400px"}} align={"center"}>
-                        {status === "loading" && <Skeleton w={"auto"} h={300}/>}
-                        {session?.user && <HomeTabs/>}
-                        {!session?.user && status !== "loading" && <>
+                    {status === "loading" && <Card style={{minHeight: "400px"}} align={"center"}><Skeleton w={"auto"} h={300}/></Card>}
+                    {!session?.user && status !== "loading" && <>
+                        {/*@ts-expect-error This works, but says you can't do align on Card*/}
+                        <Card style={{minHeight: "400px"}} align={"center"}>
                             <Stack gap={20}>
                                 <Text fw={700} size={"md"}>In order to use TradeTruth, please log in with Google.</Text>
                                 <LoginButton/>
                             </Stack>
-                        </>}
-                    </Card>
+                        </Card>
+                    </>}
+                    {session?.user && <HomeTabs/>}
                 </Stack>
             </Container>
         </>
