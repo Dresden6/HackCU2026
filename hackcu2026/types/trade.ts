@@ -67,7 +67,7 @@ export interface AnalyzeResponse {
   parsedTrade?: ParsedTrade;
   flags: Flag[];
   explanation: string;
-  simulationResult: SimulationResult;
+  simulationResult?: SimulationResult;
 }
 
 /** Shape of the /api/simulate request body. */
